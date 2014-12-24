@@ -3,6 +3,7 @@
 
 // }
 var markMap = {};
+var host = "sharmark.com"
 
 // ===================== 获取书签 开始=======================
 function tree(treeNodes) {
@@ -47,14 +48,15 @@ chrome.omnibox.onInputChanged.addListener(
       chrome.bookmarks.search(text, function(results) {
         for (i in results) {
           var item = results[i];
-          if (item.url)
+          if (item.url) {
+            // TODO needs to be escaped because of xml style format
             suggests.push({
               content:     item.url,
-              // TODO needs to be escaped because of xml style format
-              description: item.title.replace(new RegExp("(" + text + ")", "gi"), "<match>$1</match>") //+ " <dim>" + "(URL)" + "</dim>"
+              description: item.url + "-" + item.title.replace(new RegExp("(" + text + ")", "gi"), "<match>$1</match>") //+ " <dim>" + "(URL)" + "</dim>"
             });
+          }
         }
-        suggest(suggests);  
+        suggest(suggests);
       });
       // if (Object.keys(markMap).length == 0) {
       //   chrome.bookmarks.getTree(tree);
@@ -82,9 +84,19 @@ chrome.omnibox.onInputChanged.addListener(
 chrome.omnibox.onInputEntered.addListener(
   function(text) {
     console.log('inputEntered: ' + text);
+    if (text.indexOf("http") < 0 && text.indexOf("https") < 0 )
+      text = host;
     chrome.tabs.update({
       url:text
     });
   });
+chrome.omnibox.onInputCancelled.addListener(
+  function() {
+    console.log("cancel input!!")
+  });
 
+chrome.omnibox.onInputStarted.addListener(
+  function() {
+    console.log("start input!!");
+  });
 // ===================== 输入框搜索 结束=======================
